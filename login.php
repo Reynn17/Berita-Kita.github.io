@@ -1,71 +1,71 @@
 <?php
 session_start();
+
 include('includes/config.php');
 
-if (isset($_POST['login'])) {
-    $uname = $_POST['username'];
-    $password = $_POST['password'];
+$username = $_SESSION['username'];
+$query = "SELECT kategori FROM tbl_user WHERE username = '$username'";
+$result = mysqli_query($con, $query);
 
-    $sql = mysqli_query($con, "SELECT id, username, upassword, email, kategori FROM tbl_user WHERE (username='$uname' AND upassword='$password')");
-    $num = mysqli_fetch_array($sql);
-
-    if ($num) {
-        // Set session variables or perform any other necessary actions
-        $_SESSION['user_id'] = $num['id'];
-        $_SESSION['username'] = $num['username'];
-        $_SESSION['kategori'] = $num['kategori'];
-
-        header("Location: index.php");
-        exit();
-    } else {
-        echo "<script>alert('Invalid Details');</script>";
-    }
+if ($result) {
+    $row = mysqli_fetch_assoc($result);
+    $kategori = $row['kategori'];
+} else {
+    $kategori = "Unknown Category";
 }
-?>
 
+$kategoriString = explode(" ", $kategori);
+
+mysqli_close($con);
+?>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login Page</title>
+    <title>Berita Kita V1</title>
     <link href="assets/css/style.css" type="text/css" rel="stylesheet">
-    <!-- Link Bootstrap CSS -->
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
 </head>
 <body>
+    <?php include('includes/header.php');
 
-<div class="container mt-5">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-header">
-                    <h3 class="text-center">Login</h3>
-                </div>
-                <div class="card-body">
-                    <form method="post">
-                        <div class="form-group">
-                            <label for="username">Username:</label>
-                            <input type="text" class="form-control" name="username" placeholder="Enter your username">
-                        </div>
-                        <div class="form-group">
-                            <label for="password">Password:</label>
-                            <input type="password" class="form-control" name="password" placeholder="Enter your password">
-                        </div>
-                        <button type="submit" class="btn btn-block" name="login">Login</button>
-                        <a href="register.php">belum punya akun</a>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
-<!-- Link Bootstrap JS and dependencies -->
-<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
-<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 
+    $feedUrls = [];
+        for ($i = 0; $i < count($kategoriString); $i++) {
+            if ($kategoriString[$i] === "politik") {
+                $feedUrls[] = "https://www.antaranews.com/rss/politik.xml";
+            } elseif ($kategoriString[$i] === "olahraga") {
+                $feedUrls[] = "https://www.antaranews.com/rss/olahraga.xml";
+            } elseif ($kategoriString[$i] === "agama") {
+                $feedUrls[] = "https://sumbar.kemenag.go.id/v2/rss/posts";
+            } elseif ($kategoriString[$i] === "teknologi") {
+                $feedUrls[] = "https://www.antaranews.com/rss/tekno.xml";
+            } elseif ($kategoriString[$i] === "hiburan") {
+                $feedUrls[] = "https://www.antaranews.com/rss/hiburan.xml";
+            }
+        }
+
+    echo "<div class='container'>";
+
+    foreach ($feedUrls as $url) {
+        $feed = simplexml_load_file($url);
+
+        if ($feed) {
+            foreach ($feed->channel->item as $item) {
+                echo "<div class='item'>";
+                echo "<a href='" . $item->link . "' target='_blank'><h2>" . $item->title . "</h2></a>";
+                echo "<div class='desc'>" . $item->description . "</div>";
+                echo "</div>";
+            }
+        } else {
+            echo "<p>Invalid Feed Link: $url</p>";
+        }
+    }
+
+    echo "</div>";
+    ?>
 </body>
 </html>
