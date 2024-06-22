@@ -6,7 +6,7 @@ Nama Anggota:
 3. Raja Aryansahputra (2201020070) <br>
 4. Betranz Leenando (2201020079) <br>
 
-Sistem Keamanan
-Done
+Mata Kuliah : Sistem Keamanan <br>
+Status : Done
 
 
